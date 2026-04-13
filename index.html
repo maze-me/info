@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maze. - personal info</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans:wght@400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0d0d0d;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(255, 0, 255, 0.03) 50px,
+                    rgba(255, 0, 255, 0.03) 51px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 50px,
+                    rgba(255, 105, 180, 0.03) 50px,
+                    rgba(255, 105, 180, 0.03) 51px
+                );
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255, 0, 255, 0.1) 0%, transparent 25%),
+                radial-gradient(circle at 75% 75%, rgba(255, 105, 180, 0.1) 0%, transparent 25%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; }
+            25% { text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; }
+            50% { text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; }
+            75% { text-shadow: -2px 0 #00ffff, 2px 0 #ff00ff; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease;
+        }
+        
+        .header h1 {
+            font-size: 5em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: #fff;
+            text-transform: lowercase;
+            letter-spacing: 3px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .header h1::after {
+            content: '.';
+            color: #ff69b4;
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .info-card {
+            background: transparent;
+            border: 1px solid #ff69b4;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff69b4, transparent);
+        }
+        
+        .info-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff69b4, transparent);
+        }
+        
+        
+        .info-section {
+            margin-bottom: 30px;
+        }
+        
+        .info-section h2 {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #ff69b4;
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            padding: 10px 0;
+            position: relative;
+        }
+        
+        .info-section h2::before {
+            content: '> ';
+            color: #ff69b4;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            background: transparent;
+            padding: 15px;
+            text-align: left;
+            border: none;
+            border-left: 2px solid #ff69b4;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .info-item:hover {
+            border-left-color: #fff;
+        }
+        
+        .info-item .label {
+            font-size: 0.8em;
+            color: #ff69b4;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .info-item .value {
+            font-size: 1em;
+            color: #fff;
+        }
+        
+        .kin-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .kin-item {
+            background: transparent;
+            border: 1px solid #333;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .kin-item:hover {
+            border-color: #ff69b4;
+        }
+        
+        .kin-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            filter: grayscale(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .kin-item:hover img {
+            filter: grayscale(0%);
+        }
+        
+        .kin-item .name {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .kin-item .source {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+        
+        .hanging-sign {
+            position: relative;
+            margin: 60px auto;
+            max-width: 300px;
+            animation: hanging 4s ease-in-out infinite;
+            transform-origin: top center;
+        }
+        
+        @keyframes hanging {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+        
+        .hanging-sign::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 20px;
+            background: #ff69b4;
+        }
+        
+        .sign-board {
+            background: transparent;
+            border: 1px solid #ff69b4;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .sign-board h3 {
+            font-size: 1em;
+            color: #ff69b4;
+            font-weight: normal;
+            text-transform: lowercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+        
+        .sign-content {
+            text-align: center;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .fandoms-section {
+            margin-top: 30px;
+        }
+        
+        .fandoms-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .fandom-tag {
+            background: transparent;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+            margin: 2px;
+        }
+        
+        .fandom-tag:hover {
+            border-color: #ff69b4;
+            color: #ff69b4;
+        }
+        
+        .dm-button {
+            display: inline-block;
+            background: transparent;
+            color: #ff69b4;
+            padding: 10px 20px;
+            text-decoration: none;
+            border: 1px solid #ff69b4;
+            font-size: 0.9em;
+            text-transform: lowercase;
+            transition: all 0.3s ease;
+        }
+        
+        .dm-button:hover {
+            background: #ff69b4;
+            color: #0d0d0d;
+        }
+        
+        .terminal-cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background: #fff;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .glitch-text {
+            position: relative;
+            color: white;
+            font-size: 1.2em;
+            text-transform: uppercase;
+        }
+        
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch-text::before {
+            animation: glitch-1 0.5s infinite;
+            color: #ff00ff;
+            z-index: -1;
+        }
+        
+        .glitch-text::after {
+            animation: glitch-2 0.5s infinite;
+            color: #00ffff;
+            z-index: -2;
+        }
+        
+        @keyframes glitch-1 {
+            0%, 100% { clip-path: inset(0 0 0 0); }
+            25% { clip-path: inset(20% 0 30% 0); }
+            50% { clip-path: inset(50% 0 20% 0); }
+            75% { clip-path: inset(10% 0 60% 0); }
+        }
+        
+        @keyframes glitch-2 {
+            0%, 100% { clip-path: inset(0 0 0 0); }
+            25% { clip-path: inset(60% 0 10% 0); }
+            50% { clip-path: inset(20% 0 50% 0); }
+            75% { clip-path: inset(30% 0 20% 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>maze.</h1>
+            <p style="font-size: 1.2em; opacity: 0.7; font-family: 'JetBrains Mono', monospace;">personal information space<span class="terminal-cursor"></span></p>
+        </header>
+        
+        <div class="info-card">
+            <div class="info-section">
+                <h2>About</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">Age</div>
+                        <div class="value">14 y.o</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">Personality</div>
+                        <div class="value">INFP</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">Birthday</div>
+                        <div class="value">March 30</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">Pronouns</div>
+                        <div class="value">he/him</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-section">
+                <h2>Kinn List</h2>
+                <div class="kin-list">
+                    <div class="kin-item">
+                        <img src="Aoi Asahina.png" alt="Aoi Asahina">
+                        <div class="name">Aoi Asahina</div>
+                        <div class="source">Danganronpa</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="hutao.png" alt="Hu Tao">
+                        <div class="name">Hu Tao</div>
+                        <div class="source">Genshin Impact</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="ibuki.png" alt="Ibuki Mioda">
+                        <div class="name">Ibuki Mioda</div>
+                        <div class="source">Danganronpa</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="march 7th.png" alt="March 7th">
+                        <div class="name">March 7th</div>
+                        <div class="source">Honkai: Star Rail</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="mikan.png" alt="Mikan Tsumiki">
+                        <div class="name">Mikan Tsumiki</div>
+                        <div class="source">Danganronpa</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="natsuki.png" alt="Natsuki">
+                        <div class="name">Natsuki</div>
+                        <div class="source">Doki Doki Literature Club</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="sparkle.png" alt="Sparkle">
+                        <div class="name">Sparkle</div>
+                        <div class="source">Honkai: Star Rail</div>
+                    </div>
+                    <div class="kin-item">
+                        <img src="toko fukawa.png" alt="Toko Fukawa">
+                        <div class="name">Toko Fukawa</div>
+                        <div class="source">Danganronpa</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-section">
+                <h2>Fandoms</h2>
+                <div class="fandoms-section">
+                    <div class="fandoms-grid">
+                        <div class="fandom-tag">SEKAI</div>
+                        <div class="fandom-tag">Danganronpa</div>
+                        <div class="fandom-tag">DDLC</div>
+                        <div class="fandom-tag">Madoka Magica</div>
+                        <div class="fandom-tag">Honkai: Star Rail</div>
+                        <div class="fandom-tag">Genshin Impact</div>
+                        <div class="fandom-tag">and more...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="hanging-sign">
+            <div class="sign-board">
+                <h3>Open to meeting new people</h3>
+                <div class="sign-content">
+                    <a href="https://t.me/DZARQ" target="_blank" class="dm-button">DM me</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Terminal typing effect
+        document.addEventListener('DOMContentLoaded', function() {
+            const glitchTexts = document.querySelectorAll('.glitch-text');
+            glitchTexts.forEach(text => {
+                text.setAttribute('data-text', text.textContent);
+            });
+        });
+        
+        // Interactive effects
+        document.querySelectorAll('.kin-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Add glitch effect on click
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.info-card')) {
+                const card = e.target.closest('.info-card');
+                card.style.animation = 'glitch 0.3s ease';
+                setTimeout(() => {
+                    card.style.animation = '';
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>
